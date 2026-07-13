@@ -41,9 +41,9 @@ const Dashboard = () => {
                 };
                 
                 const [statsRes, chartsRes, alertsRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/dashboard/stats', config),
-                    axios.get('http://localhost:5000/api/dashboard/charts', config),
-                    axios.get('http://localhost:5000/api/dashboard/alerts', config)
+                    axios.get('import.meta.env.VITE_API_URL/api/dashboard/stats', config),
+                    axios.get('import.meta.env.VITE_API_URL/api/dashboard/charts', config),
+                    axios.get('import.meta.env.VITE_API_URL/api/dashboard/alerts', config)
                 ]);
 
                 setStats(statsRes.data);

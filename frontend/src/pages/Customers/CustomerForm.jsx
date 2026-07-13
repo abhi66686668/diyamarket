@@ -47,7 +47,7 @@ const CustomerForm = () => {
         const fetchProductsList = async () => {
             try {
                 const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-                const { data } = await axios.get('http://localhost:5000/api/products', config);
+                const { data } = await axios.get('import.meta.env.VITE_API_URL/api/products', config);
                 setProductsList(data);
             } catch (error) {
                 console.error("Failed to fetch products list", error);
@@ -65,7 +65,7 @@ const CustomerForm = () => {
     const fetchCustomer = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            const { data } = await axios.get(`http://localhost:5000/api/customers/${id}`, config);
+            const { data } = await axios.get(`import.meta.env.VITE_API_URL/api/customers/${id}`, config);
             
             // Format date if it exists (for backward compatibility or new contracts)
             let formattedDate = new Date().toISOString().split('T')[0];
@@ -166,7 +166,7 @@ const CustomerForm = () => {
                 Authorization: `Bearer ${localStorage.getItem('token')}`,
                 'Content-Type': 'multipart/form-data'
             }};
-            const { data } = await axios.post('http://localhost:5000/api/customers/upload', formDataToUpload, config);
+            const { data } = await axios.post('import.meta.env.VITE_API_URL/api/customers/upload', formDataToUpload, config);
             setFormData(prev => ({ ...prev, [field]: data.imageUrl }));
             toast.success('Image uploaded successfully!');
         } catch (error) {
@@ -188,10 +188,10 @@ const CustomerForm = () => {
             }
             
             if (isEditMode) {
-                await axios.put(`http://localhost:5000/api/customers/${id}`, submitData, config);
+                await axios.put(`import.meta.env.VITE_API_URL/api/customers/${id}`, submitData, config);
                 toast.success('Customer updated successfully');
             } else {
-                await axios.post('http://localhost:5000/api/customers', submitData, config);
+                await axios.post('import.meta.env.VITE_API_URL/api/customers', submitData, config);
                 toast.success('Customer added successfully');
                 sessionStorage.removeItem('customerFormDraft');
                 sessionStorage.removeItem('customerFormDraft_customCategory');

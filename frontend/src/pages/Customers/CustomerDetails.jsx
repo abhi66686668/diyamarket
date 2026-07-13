@@ -30,7 +30,7 @@ const CustomerDetails = () => {
     const fetchCustomerDetails = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            const { data } = await axios.get(`http://localhost:5000/api/customers/${id}`, config);
+            const { data } = await axios.get(`import.meta.env.VITE_API_URL/api/customers/${id}`, config);
             console.log("Customer Details Data:", data);
             setCustomerData(data);
         } catch (error) {
@@ -44,7 +44,7 @@ const CustomerDetails = () => {
         e.preventDefault();
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            await axios.post('http://localhost:5000/api/payments', {
+            await axios.post('import.meta.env.VITE_API_URL/api/payments', {
                 customerId: id,
                 contractId: selectedContract._id,
                 ...paymentForm
@@ -65,7 +65,7 @@ const CustomerDetails = () => {
         if(window.confirm('Are you sure you want to delete this payment? Contract balance will be reverted.')) {
             try {
                 const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-                await axios.delete(`http://localhost:5000/api/payments/${paymentId}`, config);
+                await axios.delete(`import.meta.env.VITE_API_URL/api/payments/${paymentId}`, config);
                 toast.success('Payment deleted');
                 fetchCustomerDetails();
             } catch (error) {

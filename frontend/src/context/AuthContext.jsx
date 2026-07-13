@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
                             Authorization: `Bearer ${token}`
                         }
                     };
-                    const { data } = await axios.get('http://localhost:5000/api/auth/profile', config);
+                    const { data } = await axios.get('import.meta.env.VITE_API_URL/api/auth/profile', config);
                     setAdmin({ ...data, token });
                 } catch (error) {
                     console.error("Token invalid or expired", error);
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (username, password) => {
-        const { data } = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+        const { data } = await axios.post('import.meta.env.VITE_API_URL/api/auth/login', { username, password });
         localStorage.setItem('token', data.token);
         setAdmin(data);
     };

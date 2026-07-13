@@ -32,7 +32,7 @@ const ProductForm = () => {
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.get(`http://localhost:5000/api/products/${id}`, config);
+            const { data } = await axios.get(`import.meta.env.VITE_API_URL/api/products/${id}`, config);
             setFormData({
                 name: data.name,
                 category: data.category,
@@ -68,7 +68,7 @@ const ProductForm = () => {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             };
-            const { data } = await axios.post('http://localhost:5000/api/upload', uploadData, config);
+            const { data } = await axios.post('import.meta.env.VITE_API_URL/api/upload', uploadData, config);
             setFormData({ ...formData, photo: data.imageUrl });
             toast.success('Image uploaded successfully');
         } catch (error) {
@@ -92,10 +92,10 @@ const ProductForm = () => {
             };
 
             if (isEditMode) {
-                await axios.put(`http://localhost:5000/api/products/${id}`, formData, config);
+                await axios.put(`import.meta.env.VITE_API_URL/api/products/${id}`, formData, config);
                 toast.success('Product updated successfully');
             } else {
-                await axios.post('http://localhost:5000/api/products', formData, config);
+                await axios.post('import.meta.env.VITE_API_URL/api/products', formData, config);
                 toast.success('Product added successfully');
             }
             navigate('/products');

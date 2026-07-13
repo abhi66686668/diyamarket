@@ -29,7 +29,7 @@ const PaymentForm = () => {
     const fetchActiveCustomers = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            const { data } = await axios.get('http://localhost:5000/api/customers?status=Active', config);
+            const { data } = await axios.get('import.meta.env.VITE_API_URL/api/customers?status=Active', config);
             
             // data contains customers with their contracts array
             // Filter to ensure we only have customers who have at least one active contract
@@ -122,7 +122,7 @@ const PaymentForm = () => {
                 customerId: selectedCustomerId,
                 contractId: selectedContractId
             };
-            await axios.post(`http://localhost:5000/api/payments`, payload, config);
+            await axios.post(`import.meta.env.VITE_API_URL/api/payments`, payload, config);
             toast.success(selectedContractId === 'auto' ? 'Bulk payment auto-distributed successfully!' : 'Payment recorded successfully!');
             
             // Reset form

@@ -22,8 +22,8 @@ const Reports = () => {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             
             const [customersRes, paymentsRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/customers', config),
-                axios.get('http://localhost:5000/api/payments', config)
+                axios.get('import.meta.env.VITE_API_URL/api/customers', config),
+                axios.get('import.meta.env.VITE_API_URL/api/payments', config)
             ]);
             
             // Flatten customers into a list of contracts
