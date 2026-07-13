@@ -17,11 +17,12 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
 
-  - type: static
+  - type: web
     name: diyamarket-frontend
+    env: node
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    startCommand: npm start
     envVars:
       - key: VITE_API_URL
         value: https://diyamarket-backend.onrender.com
