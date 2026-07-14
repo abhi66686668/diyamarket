@@ -1,4 +1,4 @@
-// Centralized API base URL — reads from Vite env variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://diyamarket.onrender.com';
+// Use relative URL in production (same server), localhost in dev
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
 export default API_BASE_URL;

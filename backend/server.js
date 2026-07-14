@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 
@@ -12,14 +13,13 @@ app.use(cors({
     origin: [
         'http://localhost:5173',
         'http://localhost:3000',
-        'https://diyamarket-frontend.onrender.com'
+        'https://diyamarket.onrender.com'
     ],
     credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const path = require('path');
 const { initAutomatedBackups } = require('./utils/backup');
 
 // Init Backups
@@ -37,6 +37,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/contracts', contractRoutes);
@@ -45,9 +46,13 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// Root Route
-app.get('/', (req, res) => {
-    res.send('Diya Market Finance Manager API is running...');
+// Serve React frontend (built files)
+const frontendDist = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendDist));
+
+// All other routes → serve React app (for React Router)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
 // Database Connection
