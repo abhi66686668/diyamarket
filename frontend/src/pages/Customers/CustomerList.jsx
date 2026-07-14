@@ -92,7 +92,8 @@ const CustomerList = () => {
             </div>
 
             <div className="glass-card overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 border-b border-gray-200">
@@ -184,6 +185,85 @@ const CustomerList = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-100">
+                    {loading ? (
+                        <div className="py-10 flex justify-center">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    ) : customers.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-500">
+                            <p>No customers found</p>
+                        </div>
+                    ) : (
+                        customers.map((customer) => (
+                            <div key={customer._id} className="p-4 hover:bg-gray-50/50 transition-colors flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center flex-1 min-w-0">
+                                        {customer.photo ? (
+                                            <img src={customer.photo} alt={customer.fullName} className="w-12 h-12 rounded-full object-cover mr-3 border border-gray-200 flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3 flex-shrink-0 text-lg">
+                                                {customer.fullName.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className="min-w-0 pr-2">
+                                            <p className="font-semibold text-gray-800 truncate">{customer.fullName}</p>
+                                            <p className="text-xs text-gray-500">{customer.mobileNumber}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex-shrink-0">
+                                        {(() => {
+                                            if (!customer.contracts || customer.contracts.length === 0) return null;
+                                            const hasOverdue = customer.contracts.some(c => c.paymentStatus === 'Overdue');
+                                            const hasActive = customer.contracts.some(c => c.paymentStatus === 'Active');
+                                            if (hasOverdue) return getStatusBadge('Overdue');
+                                            if (hasActive) return getStatusBadge('Active');
+                                            return getStatusBadge('Completed');
+                                        })()}
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    {(!customer.contracts || customer.contracts.length === 0) ? (
+                                        <p className="text-xs font-medium text-gray-500">No contracts</p>
+                                    ) : customer.contracts.length === 1 ? (
+                                        <p className="text-xs text-gray-600 truncate"><span className="font-semibold text-gray-800">Product:</span> {customer.contracts[0].productName}</p>
+                                    ) : (
+                                        <p className="text-xs text-gray-600 truncate"><span className="font-semibold text-primary">{customer.contracts.length} Products:</span> {customer.contracts.map(c => c.productName).join(', ')}</p>
+                                    )}
+                                    <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
+                                        <div>
+                                            <p className="text-[10px] text-gray-500">Total Amt</p>
+                                            <p className="text-xs font-medium text-gray-800">
+                                                {formatCurrency((customer.contracts || []).reduce((sum, c) => sum + c.totalRepaymentAmount, 0))}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-gray-500">Balance</p>
+                                            <p className="text-xs font-bold text-gray-800">
+                                                {formatCurrency((customer.contracts || []).reduce((sum, c) => sum + c.remainingBalance, 0))}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-end gap-2 mt-1">
+                                    <Link to={`/customers/${customer._id}`} className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">
+                                        <MdVisibility className="text-lg" />
+                                    </Link>
+                                    <Link to={`/customers/edit/${customer._id}`} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                                        <MdEdit className="text-lg" />
+                                    </Link>
+                                    <button onClick={() => handleDelete(customer._id)} className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors">
+                                        <MdDelete className="text-lg" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>

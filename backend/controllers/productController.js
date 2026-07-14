@@ -51,6 +51,9 @@ exports.createProduct = async (req, res) => {
             photo
         });
 
+        const io = req.app.get('io');
+        if (io) io.emit('product_changed', { action: 'create', product });
+
         res.status(201).json(product);
     } catch (error) {
         console.error('Error in createProduct:', error);
@@ -77,6 +80,9 @@ exports.updateProduct = async (req, res) => {
 
         await product.save();
 
+        const io = req.app.get('io');
+        if (io) io.emit('product_changed', { action: 'update', product });
+
         res.json(product);
     } catch (error) {
         console.error('Error in updateProduct:', error);
@@ -93,6 +99,9 @@ exports.deleteProduct = async (req, res) => {
         }
 
         await product.deleteOne();
+
+        const io = req.app.get('io');
+        if (io) io.emit('product_changed', { action: 'delete', id: req.params.id });
 
         res.json({ message: 'Product removed' });
     } catch (error) {

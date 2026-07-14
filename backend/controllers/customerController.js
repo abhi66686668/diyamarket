@@ -117,6 +117,9 @@ const createCustomer = async (req, res) => {
 
         await contract.save();
         
+        const io = req.app.get('io');
+        if (io) io.emit('customer_changed', { action: 'create', customer, contract });
+
         res.status(201).json({ customer, contract });
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -133,6 +136,10 @@ const updateCustomer = async (req, res) => {
         if (customer) {
             Object.assign(customer, req.body); // Will only update fullName, mobile, photo
             const updatedCustomer = await customer.save();
+            
+            const io = req.app.get('io');
+            if (io) io.emit('customer_changed', { action: 'update', customer: updatedCustomer });
+
             res.json(updatedCustomer);
         } else {
             res.status(404).json({ message: 'Customer not found' });
@@ -153,6 +160,10 @@ const deleteCustomer = async (req, res) => {
             await Contract.deleteMany({ customer: customer._id });
             await Payment.deleteMany({ customer: customer._id });
             await customer.deleteOne();
+            
+            const io = req.app.get('io');
+            if (io) io.emit('customer_changed', { action: 'delete', id: req.params.id });
+
             res.json({ message: 'Customer, Contracts, and Payments removed' });
         } else {
             res.status(404).json({ message: 'Customer not found' });

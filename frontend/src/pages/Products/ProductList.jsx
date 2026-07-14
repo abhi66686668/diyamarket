@@ -69,7 +69,8 @@ const ProductList = () => {
             </div>
 
             <div className="glass-card overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 border-b border-gray-200">
@@ -140,6 +141,63 @@ const ProductList = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-100">
+                    {loading ? (
+                        <div className="py-10 flex justify-center">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    ) : products.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-500">
+                            <MdInventory className="text-4xl text-gray-300 mb-2" />
+                            <p>No products found</p>
+                        </div>
+                    ) : (
+                        products.map((product) => (
+                            <div key={product._id} className="p-4 hover:bg-gray-50/50 transition-colors flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center flex-1 min-w-0">
+                                        {product.photo ? (
+                                            <img src={product.photo} alt={product.name} className="w-12 h-12 rounded-lg object-cover mr-3 border border-gray-200 flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center mr-3 flex-shrink-0">
+                                                <MdInventory className="text-2xl" />
+                                            </div>
+                                        )}
+                                        <div className="min-w-0 pr-2">
+                                            <p className="font-semibold text-gray-800 truncate">{product.name}</p>
+                                            <p className="text-xs text-gray-500 truncate">{product.description}</p>
+                                        </div>
+                                    </div>
+                                    <span className="px-2 py-1 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800 flex-shrink-0 whitespace-nowrap">
+                                        {product.category}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between mt-1">
+                                    <div>
+                                        <p className="text-xs text-gray-500">Price</p>
+                                        <p className="text-sm font-bold text-gray-800">{formatCurrency(product.price)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xs text-gray-500">Stock</p>
+                                        <p className={`text-sm font-medium ${product.stock <= 5 ? 'text-red-500' : 'text-gray-800'}`}>
+                                            {product.stock}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Link to={`/products/edit/${product._id}`} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                                            <MdEdit className="text-lg" />
+                                        </Link>
+                                        <button onClick={() => handleDelete(product._id)} className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors">
+                                            <MdDelete className="text-lg" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>
