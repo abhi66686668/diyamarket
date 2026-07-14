@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../utils/api';
 import { Link } from 'react-router-dom';
 import { MdSearch, MdEdit, MdDelete, MdInventory } from 'react-icons/md';
 import { toast } from 'react-toastify';
@@ -19,7 +20,7 @@ const ProductList = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 params: { search }
             };
-            const { data } = await axios.get('import.meta.env.VITE_API_URL/api/products', config);
+            const { data } = await axios.get(`${API_BASE_URL}/api/products`, config);
             setProducts(data);
         } catch (error) {
             toast.error('Failed to fetch products');
@@ -34,7 +35,7 @@ const ProductList = () => {
                 const config = {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 };
-                await axios.delete(`import.meta.env.VITE_API_URL/api/products/${id}`, config);
+                await axios.delete(`${API_BASE_URL}/api/products/${id}`, config);
                 toast.success('Product deleted');
                 fetchProducts();
             } catch (error) {

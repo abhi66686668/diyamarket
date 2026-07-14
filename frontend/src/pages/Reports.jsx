@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from 'jspdf-autotable';
@@ -22,8 +23,8 @@ const Reports = () => {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             
             const [customersRes, paymentsRes] = await Promise.all([
-                axios.get('import.meta.env.VITE_API_URL/api/customers', config),
-                axios.get('import.meta.env.VITE_API_URL/api/payments', config)
+                axios.get(`${API_BASE_URL}/api/customers`, config),
+                axios.get(`${API_BASE_URL}/api/payments`, config)
             ]);
             
             // Flatten customers into a list of contracts

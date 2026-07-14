@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../utils/api';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { MdArrowBack } from 'react-icons/md';
@@ -35,11 +36,11 @@ const ContractForm = () => {
                 const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
                 
                 // Fetch customer details
-                const custRes = await axios.get(`import.meta.env.VITE_API_URL/api/customers/${customerId}`, config);
+                const custRes = await axios.get(`${API_BASE_URL}/api/customers/${customerId}`, config);
                 setCustomer(custRes.data.customer);
 
                 // Fetch products list
-                const prodRes = await axios.get('import.meta.env.VITE_API_URL/api/products', config);
+                const prodRes = await axios.get(`${API_BASE_URL}/api/products`, config);
                 setProductsList(prodRes.data);
             } catch (error) {
                 toast.error('Failed to load initial data');
@@ -120,7 +121,7 @@ const ContractForm = () => {
                 submitData.productCategory = customCategory;
             }
             
-            await axios.post(`import.meta.env.VITE_API_URL/api/contracts/customers/${customerId}`, submitData, config);
+            await axios.post(`${API_BASE_URL}/api/contracts/customers/${customerId}`, submitData, config);
             toast.success('Contract added successfully');
             
             navigate(`/customers/${customerId}`);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../utils/api';
 import { Link } from 'react-router-dom';
 import { MdSearch, MdFilterList, MdEdit, MdVisibility, MdDelete } from 'react-icons/md';
 import { toast } from 'react-toastify';
@@ -20,7 +21,7 @@ const CustomerList = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 params: { search, status: statusFilter }
             };
-            const { data } = await axios.get('import.meta.env.VITE_API_URL/api/customers', config);
+            const { data } = await axios.get(`${API_BASE_URL}/api/customers`, config);
             setCustomers(data);
         } catch (error) {
             toast.error('Failed to fetch customers');
@@ -35,7 +36,7 @@ const CustomerList = () => {
                 const config = {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 };
-                await axios.delete(`import.meta.env.VITE_API_URL/api/customers/${id}`, config);
+                await axios.delete(`${API_BASE_URL}/api/customers/${id}`, config);
                 toast.success('Customer deleted');
                 fetchCustomers();
             } catch (error) {

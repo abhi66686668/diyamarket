@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../utils/api';
 import { 
     MdPeopleAlt, 
     MdAccountBalanceWallet, 
@@ -41,9 +42,9 @@ const Dashboard = () => {
                 };
                 
                 const [statsRes, chartsRes, alertsRes] = await Promise.all([
-                    axios.get('import.meta.env.VITE_API_URL/api/dashboard/stats', config),
-                    axios.get('import.meta.env.VITE_API_URL/api/dashboard/charts', config),
-                    axios.get('import.meta.env.VITE_API_URL/api/dashboard/alerts', config)
+                    axios.get(`${API_BASE_URL}/api/dashboard/stats`, config),
+                    axios.get(`${API_BASE_URL}/api/dashboard/charts`, config),
+                    axios.get(`${API_BASE_URL}/api/dashboard/alerts`, config)
                 ]);
 
                 setStats(statsRes.data);
@@ -186,11 +187,11 @@ const Dashboard = () => {
                         <MdWarning className="text-orange-500 mr-2 text-xl" /> Action Required (Overdue & Upcoming)
                     </h3>
                     <div className="space-y-4">
-                        {alerts?.overdueDues.length === 0 && alerts?.upcomingDues.length === 0 ? (
+                        {(alerts?.overdueDues?.length ?? 0) === 0 && (alerts?.upcomingDues?.length ?? 0) === 0 ? (
                             <p className="text-gray-500 text-center py-4">No pending actions required.</p>
                         ) : (
                             <>
-                                {alerts?.overdueDues.map(c => (
+                                {alerts?.overdueDues?.map(c => (
                                     <div key={c._id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
                                         <div>
                                             <p className="font-semibold text-gray-800">{c.customer?.fullName}</p>
@@ -200,7 +201,7 @@ const Dashboard = () => {
                                         <Link to={`/customers/${c.customer?._id}`} className="text-sm text-primary font-medium hover:underline flex-shrink-0 ml-2">View</Link>
                                     </div>
                                 ))}
-                                {alerts?.upcomingDues.map(c => (
+                                {alerts?.upcomingDues?.map(c => (
                                     <div key={c._id} className="flex items-center justify-between p-3 bg-orange-50 rounded-xl border border-orange-100">
                                         <div>
                                             <p className="font-semibold text-gray-800">{c.customer?.fullName}</p>

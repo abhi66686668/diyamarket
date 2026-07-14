@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../utils/api';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -32,7 +33,7 @@ const ProductForm = () => {
             const config = {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             };
-            const { data } = await axios.get(`import.meta.env.VITE_API_URL/api/products/${id}`, config);
+            const { data } = await axios.get(`${API_BASE_URL}/api/products/${id}`, config);
             setFormData({
                 name: data.name,
                 category: data.category,
@@ -68,7 +69,7 @@ const ProductForm = () => {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             };
-            const { data } = await axios.post('import.meta.env.VITE_API_URL/api/upload', uploadData, config);
+            const { data } = await axios.post(`${API_BASE_URL}/api/upload`, uploadData, config);
             setFormData({ ...formData, photo: data.imageUrl });
             toast.success('Image uploaded successfully');
         } catch (error) {
@@ -92,10 +93,10 @@ const ProductForm = () => {
             };
 
             if (isEditMode) {
-                await axios.put(`import.meta.env.VITE_API_URL/api/products/${id}`, formData, config);
+                await axios.put(`${API_BASE_URL}/api/products/${id}`, formData, config);
                 toast.success('Product updated successfully');
             } else {
-                await axios.post('import.meta.env.VITE_API_URL/api/products', formData, config);
+                await axios.post(`${API_BASE_URL}/api/products`, formData, config);
                 toast.success('Product added successfully');
             }
             navigate('/products');

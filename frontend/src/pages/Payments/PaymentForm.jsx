@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../utils/api';
 import { toast } from 'react-toastify';
 import { MdPayment, MdCheckCircle, MdSearch, MdClose } from 'react-icons/md';
 
@@ -29,7 +30,7 @@ const PaymentForm = () => {
     const fetchActiveCustomers = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            const { data } = await axios.get('import.meta.env.VITE_API_URL/api/customers?status=Active', config);
+            const { data } = await axios.get(`${API_BASE_URL}/api/customers?status=Active`, config);
             
             // data contains customers with their contracts array
             // Filter to ensure we only have customers who have at least one active contract
@@ -122,7 +123,7 @@ const PaymentForm = () => {
                 customerId: selectedCustomerId,
                 contractId: selectedContractId
             };
-            await axios.post(`import.meta.env.VITE_API_URL/api/payments`, payload, config);
+            await axios.post(`${API_BASE_URL}/api/payments`, payload, config);
             toast.success(selectedContractId === 'auto' ? 'Bulk payment auto-distributed successfully!' : 'Payment recorded successfully!');
             
             // Reset form
