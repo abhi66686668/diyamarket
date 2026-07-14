@@ -11,8 +11,13 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
+        let folderName = 'diya_market_customers';
+        if (req.originalUrl && req.originalUrl.includes('/api/upload') && !req.originalUrl.includes('/customers')) {
+            folderName = 'diya_market_products';
+        }
+
         return {
-            folder: 'diya_market_customers',
+            folder: folderName,
             allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
             timestamp: Math.round((Date.now() + 37623000) / 1000)
         };
