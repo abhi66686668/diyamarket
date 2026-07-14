@@ -25,4 +25,4 @@ services:
     startCommand: npm start
     envVars:
       - key: VITE_API_URL
-        value: https://diyamarket-backend.onrender.com
+        value: https://diyamarket.onrender.com
