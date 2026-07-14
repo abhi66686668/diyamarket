@@ -51,7 +51,7 @@ const frontendDist = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendDist));
 
 // All other routes → serve React app (for React Router)
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
