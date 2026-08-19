@@ -5,6 +5,7 @@ const qrcodeTerminal = require('qrcode-terminal');
 const qrcodeImg = require('qrcode');
 
 let client;
+let currentQR = '';
 
 const initWhatsApp = async () => {
     try {
@@ -27,23 +28,25 @@ const initWhatsApp = async () => {
         });
 
         client.on('qr', (qr) => {
+            currentQR = qr;
             console.log('\n=============================================');
             console.log('SCAN THIS QR CODE WITH WHATSAPP TO LINK ACCOUNT');
+            console.log('If you cannot scan this, go to: https://diyamarket.onrender.com/api/qr');
             console.log('=============================================\n');
             qrcodeTerminal.generate(qr, { small: true });
 
-            // Also save as an image file for easier scanning
+            // Also save as an image file for easier scanning locally
             const artifactPath = require('path').join(__dirname, '../../whatsapp-qr.png');
             qrcodeImg.toFile(artifactPath, qr, {
                 color: { dark: '#000000', light: '#FFFFFF' },
                 width: 400
             }, (err) => {
                 if (err) console.error('Failed to generate QR image', err);
-                else console.log('QR Code image saved to', artifactPath);
             });
         });
 
         client.on('ready', () => {
+            currentQR = '';
             console.log('WhatsApp Client is Ready!');
         });
         
@@ -52,10 +55,12 @@ const initWhatsApp = async () => {
         });
 
         client.on('authenticated', () => {
+            currentQR = '';
             console.log('WhatsApp Authenticated!');
         });
 
         client.on('auth_failure', msg => {
+            currentQR = '';
             console.error('WhatsApp Authentication failure:', msg);
         });
 
@@ -64,6 +69,8 @@ const initWhatsApp = async () => {
         console.error('WhatsApp init error:', error);
     }
 };
+
+const getQR = () => currentQR;
 
 const sendPDF = async (phoneNumber, pdfBuffer, caption = 'Here is your receipt.') => {
     if (!client) {
@@ -86,4 +93,4 @@ const sendPDF = async (phoneNumber, pdfBuffer, caption = 'Here is your receipt.'
     }
 };
 
-module.exports = { initWhatsApp, sendPDF };
+module.exports = { initWhatsApp, sendPDF, getQR };

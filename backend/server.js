@@ -37,6 +37,31 @@ const uploadRoutes = require('./routes/uploadRoutes');
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
+// WhatsApp QR Code endpoint
+app.get('/api/qr', async (req, res) => {
+    const { getQR } = require('./services/whatsappService');
+    const qr = getQR();
+    if (!qr) {
+        return res.send(`
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+                <h2>No QR Code Available</h2>
+                <p>Either WhatsApp is already authenticated, or the server is still starting up.</p>
+                <p>Please wait a moment and refresh this page.</p>
+            </div>
+        `);
+    }
+    const qrcodeImg = require('qrcode');
+    const qrImage = await qrcodeImg.toDataURL(qr);
+    res.send(`
+        <meta http-equiv="refresh" content="5">
+        <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+            <h2>Scan this QR Code with WhatsApp</h2>
+            <p>This page will automatically refresh every 5 seconds until authenticated.</p>
+            <img src="${qrImage}" style="width: 300px; height: 300px; border: 2px solid #ccc; border-radius: 10px; padding: 10px;" />
+        </div>
+    `);
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
