@@ -1,4 +1,5 @@
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const { Client, RemoteAuth, MessageMedia } = require('whatsapp-web.js');
+const { MongoStore } = require('wwebjs-mongo');
 const mongoose = require('mongoose');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcodeImg = require('qrcode');
@@ -7,8 +8,14 @@ let client;
 
 const initWhatsApp = async () => {
     try {
+        const store = new MongoStore({ mongoose: mongoose });
+
         client = new Client({
-            authStrategy: new LocalAuth({ clientId: 'diya-marketing' }),
+            authStrategy: new RemoteAuth({
+                clientId: 'diya-marketing',
+                store: store,
+                backupSyncIntervalMs: 300000
+            }),
             webVersionCache: {
                 type: 'remote',
                 remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
