@@ -57,7 +57,11 @@ app.get(/.*/, (req, res) => {
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('MongoDB Connected successfully'))
+.then(() => {
+    console.log('MongoDB Connected successfully');
+    const { initWhatsApp } = require('./services/whatsappService');
+    initWhatsApp();
+})
 .catch(err => console.error('MongoDB connection error:', err));
 
 const http = require('http');

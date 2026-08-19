@@ -56,6 +56,17 @@ const CustomerList = () => {
 
     const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 
+    const getProductNamesString = (contract) => {
+        if (contract.products && contract.products.length > 0) {
+            return contract.products.map(p => p.productName).join(', ');
+        }
+        return contract.productName || 'Unknown Product';
+    };
+
+    const getAllProductNamesString = (contracts) => {
+        return contracts.map(c => getProductNamesString(c)).join(', ');
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -139,14 +150,18 @@ const CustomerList = () => {
                                                 <p className="text-sm font-medium text-gray-500">No contracts</p>
                                             ) : customer.contracts.length === 1 ? (
                                                 <>
-                                                    <p className="text-sm font-medium text-gray-800">{customer.contracts[0].productName}</p>
-                                                    <p className="text-xs text-gray-500">{customer.contracts[0].productCategory}</p>
+                                                    <p className="text-sm font-medium text-gray-800 text-ellipsis overflow-hidden whitespace-nowrap max-w-[200px]">
+                                                        {getProductNamesString(customer.contracts[0])}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {customer.contracts[0].products?.length > 1 ? `${customer.contracts[0].products.length} Items` : (customer.contracts[0].products?.[0]?.productCategory || customer.contracts[0].productCategory || 'Item')}
+                                                    </p>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <p className="text-sm font-medium text-primary">{customer.contracts.length} Products</p>
-                                                    <p className="text-xs text-gray-500 text-ellipsis overflow-hidden whitespace-nowrap max-w-[150px]">
-                                                        {customer.contracts.map(c => c.productName).join(', ')}
+                                                    <p className="text-sm font-medium text-primary">{customer.contracts.length} Contracts</p>
+                                                    <p className="text-xs text-gray-500 text-ellipsis overflow-hidden whitespace-nowrap max-w-[200px]">
+                                                        {getAllProductNamesString(customer.contracts)}
                                                     </p>
                                                 </>
                                             )}
@@ -230,9 +245,9 @@ const CustomerList = () => {
                                     {(!customer.contracts || customer.contracts.length === 0) ? (
                                         <p className="text-xs font-medium text-gray-500">No contracts</p>
                                     ) : customer.contracts.length === 1 ? (
-                                        <p className="text-xs text-gray-600 truncate"><span className="font-semibold text-gray-800">Product:</span> {customer.contracts[0].productName}</p>
+                                        <p className="text-xs text-gray-600 truncate"><span className="font-semibold text-gray-800">Product:</span> {getProductNamesString(customer.contracts[0])}</p>
                                     ) : (
-                                        <p className="text-xs text-gray-600 truncate"><span className="font-semibold text-primary">{customer.contracts.length} Products:</span> {customer.contracts.map(c => c.productName).join(', ')}</p>
+                                        <p className="text-xs text-gray-600 truncate"><span className="font-semibold text-primary">{customer.contracts.length} Contracts:</span> {getAllProductNamesString(customer.contracts)}</p>
                                     )}
                                     <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
                                         <div>

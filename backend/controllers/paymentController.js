@@ -1,6 +1,8 @@
 const Payment = require('../models/Payment');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
+const { generatePaymentPDF } = require('../utils/pdfGenerator');
+const { sendPDF } = require('../services/whatsappService');
 
 // @desc    Get all payments
 // @route   GET /api/payments
@@ -166,8 +168,48 @@ const deletePayment = async (req, res) => {
     }
 };
 
+// @desc    Send Payment Receipt PDF via WhatsApp
+// @route   POST /api/payments/:id/send-receipt
+// @access  Private
+const sendPaymentReceipt = async (req, res) => {
+    try {
+        const payment = await Payment.findById(req.params.id);
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment not found' });
+        }
+
+        const customer = await Customer.findById(payment.customer);
+        const contract = await Contract.findById(payment.contract);
+        
+        if (!customer || !contract) {
+            return res.status(404).json({ message: 'Customer or Contract not found' });
+        }
+
+        const productNames = contract.products.map(p => p.productName);
+        const displayTitle = productNames.length > 2 
+            ? `${productNames.slice(0, 2).join(', ')} + ${productNames.length - 2} more` 
+            : productNames.join(', ');
+
+        const productForPdf = {
+            name: displayTitle || 'Product',
+            category: contract.products.length > 1 ? 'Multiple Products' : (contract.products[0]?.productCategory || ''),
+            photo: contract.products.find(p => p.productPhoto)?.productPhoto || null
+        };
+
+        const pdfBuffer = await generatePaymentPDF(payment, contract, customer, productForPdf);
+        
+        await sendPDF(customer.mobileNumber, pdfBuffer, `Hello ${customer.fullName},\n\nWe have received your payment of Rs ${payment.amountPaid}. Please find your payment receipt attached.\n\nThank you for choosing Diya Marketing!`);
+
+        res.json({ message: 'Receipt sent successfully via WhatsApp' });
+    } catch (error) {
+        console.error('Error sending payment receipt:', error);
+        res.status(500).json({ message: 'Failed to send receipt: ' + error.message });
+    }
+};
+
 module.exports = {
     getPayments,
     addPayment,
-    deletePayment
+    deletePayment,
+    sendPaymentReceipt
 };

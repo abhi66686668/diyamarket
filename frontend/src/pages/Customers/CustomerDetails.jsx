@@ -4,7 +4,7 @@ import API_BASE_URL from '../../utils/api';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
     MdArrowBack, MdPhone, MdAccountBalanceWallet, 
-    MdDateRange, MdPayment, MdAdd, MdDelete
+    MdDateRange, MdPayment, MdAdd, MdDelete, MdCheckCircle, MdSend
 } from 'react-icons/md';
 import { toast } from 'react-toastify';
 
@@ -32,7 +32,6 @@ const CustomerDetails = () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             const { data } = await axios.get(`${API_BASE_URL}/api/customers/${id}`, config);
-            console.log("Customer Details Data:", data);
             setCustomerData(data);
         } catch (error) {
             toast.error('Failed to fetch customer details');
@@ -75,6 +74,17 @@ const CustomerDetails = () => {
         }
     }
 
+    const handleSendPaymentReceipt = async (paymentId) => {
+        const toastId = toast.loading('Sending receipt via WhatsApp...');
+        try {
+            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+            await axios.post(`${API_BASE_URL}/api/payments/${paymentId}/send-receipt`, {}, config);
+            toast.update(toastId, { render: 'Receipt sent successfully!', type: 'success', isLoading: false, autoClose: 3000 });
+        } catch (error) {
+            toast.update(toastId, { render: error.response?.data?.message || 'Failed to send receipt', type: 'error', isLoading: false, autoClose: 3000 });
+        }
+    }
+
     if (loading) return <div className="flex h-full items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>;
     if (!customerData || !customerData.customer) return <div>Customer not found</div>;
 
@@ -84,7 +94,7 @@ const CustomerDetails = () => {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'Active': return <span className="px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800">Active</span>;
-            case 'Completed': return <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">Completed</span>;
+            case 'Completed': return <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800 flex items-center"><MdCheckCircle className="mr-1"/> Completed</span>;
             case 'Overdue': return <span className="px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800 border border-red-300">Overdue</span>;
             default: return null;
         }
@@ -162,20 +172,42 @@ const CustomerDetails = () => {
                         const progressPercentage = ((contract.totalRepaymentAmount - contract.remainingBalance) / contract.totalRepaymentAmount) * 100;
                         const contractPayments = payments.filter(p => p.contract && p.contract._id === contract._id);
                         
+                        // Extract product display info
+                        let productNames = [];
+                        let firstPhoto = null;
+                        
+                        if (contract.products && contract.products.length > 0) {
+                            productNames = contract.products.map(p => p.productName);
+                            const productWithPhoto = contract.products.find(p => p.productPhoto);
+                            if (productWithPhoto) firstPhoto = productWithPhoto.productPhoto;
+                        } else {
+                            // Fallback for older contracts before migration
+                            if (contract.productName) productNames = [contract.productName];
+                            if (contract.productPhoto) firstPhoto = contract.productPhoto;
+                        }
+                        
+                        const displayTitle = productNames.length > 0 
+                            ? (productNames.length > 2 
+                                ? `${productNames.slice(0, 2).join(', ')} + ${productNames.length - 2} more` 
+                                : productNames.join(', '))
+                            : 'Unknown Product';
+                        
                         return (
                             <div key={contract._id} className="glass-card p-6 border-t-4 border-t-primary">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-gray-100 pb-4">
                                     <div className="flex items-center gap-4">
                                         <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200 overflow-hidden shrink-0">
-                                            {contract.productPhoto ? (
-                                                <img src={contract.productPhoto} alt={contract.productName} className="w-full h-full object-cover" />
+                                            {firstPhoto ? (
+                                                <img src={firstPhoto} alt="Product" className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="font-bold text-xl text-gray-400">#{contracts.length - idx}</span>
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-gray-800">{contract.productName}</h3>
-                                            <p className="text-sm text-gray-500">{contract.productCategory}</p>
+                                            <h3 className="text-lg font-bold text-gray-800">{displayTitle}</h3>
+                                            <p className="text-sm text-gray-500">
+                                                {contract.products && contract.products.length > 1 ? `${contract.products.length} Products` : (contract.products?.[0]?.productCategory || contract.productCategory || 'Product')}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
@@ -198,6 +230,30 @@ const CustomerDetails = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     {/* Left: Finance Details & Progress */}
                                     <div>
+                                        {/* Products List Breakdown (if multiple) */}
+                                        {contract.products && contract.products.length > 1 && (
+                                            <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                                <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">Products included</h4>
+                                                <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                                                    {contract.products.map((prod, pIdx) => (
+                                                        <div key={pIdx} className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-100">
+                                                            <div className="w-10 h-10 bg-gray-100 rounded-md overflow-hidden shrink-0 border border-gray-200">
+                                                                {prod.productPhoto ? (
+                                                                    <img src={prod.productPhoto} alt={prod.productName} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">{pIdx + 1}</div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm font-bold text-gray-800 truncate">{prod.productName}</p>
+                                                                <p className="text-xs text-gray-500 truncate">{prod.productCategory} {prod.productSerialNumber ? `• SN: ${prod.productSerialNumber}` : ''}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="grid grid-cols-2 gap-4 mb-6">
                                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                                 <p className="text-xs text-gray-500 mb-1">Total Amount</p>
@@ -246,7 +302,7 @@ const CustomerDetails = () => {
                                         {contractPayments.length === 0 ? (
                                             <p className="text-gray-500 text-sm">No payments recorded yet.</p>
                                         ) : (
-                                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                                                 {contractPayments.map(payment => (
                                                     <div key={payment._id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center group">
                                                         <div>
@@ -259,13 +315,22 @@ const CustomerDetails = () => {
                                                                 {new Date(payment.paymentDate).toLocaleDateString()}
                                                             </div>
                                                         </div>
-                                                        <button 
-                                                            onClick={() => handleDeletePayment(payment._id)}
-                                                            className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                                                            title="Delete Payment"
-                                                        >
-                                                            <MdDelete className="text-lg" />
-                                                        </button>
+                                                        <div className="flex items-center">
+                                                            <button 
+                                                                onClick={() => handleSendPaymentReceipt(payment._id)}
+                                                                className="text-gray-400 hover:text-green-500 p-2 rounded-lg hover:bg-green-50 transition-colors opacity-0 group-hover:opacity-100"
+                                                                title="Send WhatsApp Receipt"
+                                                            >
+                                                                <MdSend className="text-lg" />
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleDeletePayment(payment._id)}
+                                                                className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                                                title="Delete Payment"
+                                                            >
+                                                                <MdDelete className="text-lg" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -283,7 +348,13 @@ const CustomerDetails = () => {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-bold text-gray-800">Payment for {selectedContract.productName}</h3>
+                            <h3 className="font-bold text-gray-800">
+                                Payment for {
+                                    selectedContract.products && selectedContract.products.length > 0
+                                        ? selectedContract.products.map(p => p.productName).join(', ')
+                                        : (selectedContract.productName || 'Contract')
+                                }
+                            </h3>
                             <button onClick={() => setShowPaymentModal(false)} className="text-gray-500 hover:text-gray-800 font-bold text-xl">&times;</button>
                         </div>
                         <form onSubmit={handleAddPayment} className="p-6 space-y-4">

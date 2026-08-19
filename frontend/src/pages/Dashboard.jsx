@@ -195,7 +195,7 @@ const Dashboard = () => {
                                     <div key={c._id} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
                                         <div>
                                             <p className="font-semibold text-gray-800">{c.customer?.fullName}</p>
-                                            <p className="text-xs text-gray-600 mb-1">{c.productName}</p>
+                                            <p className="text-xs text-gray-600 mb-1">{c.products && c.products.length > 0 ? c.products.map(p => p.productName).join(', ') : c.productName}</p>
                                             <p className="text-xs font-semibold text-red-600">Overdue: {formatCurrency(c.remainingBalance)}</p>
                                         </div>
                                         <Link to={`/customers/${c.customer?._id}`} className="text-sm text-primary font-medium hover:underline flex-shrink-0 ml-2">View</Link>
@@ -205,7 +205,7 @@ const Dashboard = () => {
                                     <div key={c._id} className="flex items-center justify-between p-3 bg-orange-50 rounded-xl border border-orange-100">
                                         <div>
                                             <p className="font-semibold text-gray-800">{c.customer?.fullName}</p>
-                                            <p className="text-xs text-gray-600 mb-1">{c.productName}</p>
+                                            <p className="text-xs text-gray-600 mb-1">{c.products && c.products.length > 0 ? c.products.map(p => p.productName).join(', ') : c.productName}</p>
                                             <p className="text-xs font-semibold text-orange-600">Due {new Date(c.dueDate).toLocaleDateString()}: {formatCurrency(c.monthlyInstallment)}</p>
                                         </div>
                                         <Link to={`/customers/${c.customer?._id}`} className="text-sm text-primary font-medium hover:underline flex-shrink-0 ml-2">View</Link>

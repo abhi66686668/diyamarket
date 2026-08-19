@@ -25,3 +25,7 @@ backend/uploads/*
 # Backups
 backend/backups/*
 !backend/backups/.gitkeep
+
+# WhatsApp Web JS
+backend/.wwebjs_auth/
+backend/.wwebjs_cache/

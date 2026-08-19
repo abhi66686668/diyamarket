@@ -3,22 +3,20 @@ import axios from 'axios';
 import API_BASE_URL from '../../utils/api';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { MdArrowBack } from 'react-icons/md';
+import { MdArrowBack, MdAdd, MdDelete } from 'react-icons/md';
 
 const ContractForm = () => {
     const { customerId } = useParams();
     const navigate = useNavigate();
 
     const getInitialState = () => ({
-        productName: '', productCategory: '', productSerialNumber: '',
+        products: [{ productName: '', productCategory: '', productSerialNumber: '', productPhoto: null, customCategory: '' }],
         totalProductAmount: '', advanceAmount: '', interestRate: '',
         financeStartDate: new Date().toISOString().split('T')[0], numberOfInstallments: '',
-        paymentFrequency: 'Monthly',
-        productPhoto: null
+        paymentFrequency: 'Monthly'
     });
 
     const [formData, setFormData] = useState(getInitialState);
-    const [customCategory, setCustomCategory] = useState('');
     const [customer, setCustomer] = useState(null);
     const [productsList, setProductsList] = useState([]);
     
@@ -76,9 +74,15 @@ const ContractForm = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleProductChange = (e) => {
-        const val = e.target.value;
+    const handleProductFieldChange = (index, field, value) => {
+        const updatedProducts = [...formData.products];
+        updatedProducts[index][field] = value;
+        setFormData({ ...formData, products: updatedProducts });
+    };
+
+    const handleProductSelection = (index, val) => {
         const matchedProduct = productsList.find(p => p.name === val);
+        const updatedProducts = [...formData.products];
         
         if (matchedProduct) {
             const standardCategories = [
@@ -96,18 +100,41 @@ const ContractForm = () => {
                 newCategory = 'Other';
             }
             
-            setFormData(prev => ({
-                ...prev,
+            updatedProducts[index] = {
+                ...updatedProducts[index],
                 productName: matchedProduct.name,
                 productCategory: newCategory,
-                totalProductAmount: matchedProduct.price ? matchedProduct.price.toString() : prev.totalProductAmount,
-                productPhoto: matchedProduct.photo || prev.productPhoto
-            }));
+                productPhoto: matchedProduct.photo || updatedProducts[index].productPhoto,
+                customCategory: newCustom
+            };
             
-            setCustomCategory(newCustom);
+            const priceToAdd = matchedProduct.price ? Number(matchedProduct.price) : 0;
+            const currentTotal = Number(formData.totalProductAmount) || 0;
+            const newTotal = currentTotal + priceToAdd;
+            
+            setFormData(prev => ({
+                ...prev,
+                products: updatedProducts,
+                totalProductAmount: newTotal > 0 ? newTotal.toString() : prev.totalProductAmount
+            }));
         } else {
-            setFormData(prev => ({ ...prev, productName: val }));
+            updatedProducts[index].productName = val;
+            setFormData({ ...formData, products: updatedProducts });
         }
+    };
+
+    const addProduct = () => {
+        setFormData(prev => ({
+            ...prev,
+            products: [...prev.products, { productName: '', productCategory: '', productSerialNumber: '', productPhoto: null, customCategory: '' }]
+        }));
+    };
+
+    const removeProduct = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            products: prev.products.filter((_, i) => i !== index)
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -117,12 +144,18 @@ const ContractForm = () => {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             
             const submitData = { ...formData };
-            if (submitData.productCategory === 'Other') {
-                submitData.productCategory = customCategory;
-            }
+            submitData.products = submitData.products.map(p => {
+                const prod = { ...p };
+                if (prod.productCategory === 'Other' && prod.customCategory) {
+                    prod.productCategory = prod.customCategory;
+                }
+                delete prod.customCategory;
+                return prod;
+            });
             
             await axios.post(`${API_BASE_URL}/api/contracts/customers/${customerId}`, submitData, config);
             toast.success('Contract added successfully');
+            toast.info('Sending PDF receipt via WhatsApp...', { autoClose: 3000 });
             
             navigate(`/customers/${customerId}`);
         } catch (error) {
@@ -152,87 +185,117 @@ const ContractForm = () => {
                 
                 {/* Product Details Section */}
                 <div className="glass-card p-6">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Product Details</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
-                            <input 
-                                required 
-                                type="text" 
-                                list="productListOptions"
-                                name="productName" 
-                                value={formData.productName} 
-                                onChange={handleProductChange} 
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                            />
-                            <datalist id="productListOptions">
-                                {productsList.map(p => (
-                                    <option key={p._id} value={p.name} />
-                                ))}
-                            </datalist>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                            <select required name="productCategory" value={formData.productCategory} onChange={handleChange} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="">Select Category</option>
-                                <option value="Furniture">Furniture</option>
-                                <option value="Home Decor">Home Decor</option>
-                                <option value="Kitchen & Dining">Kitchen & Dining</option>
-                                <option value="Bedroom">Bedroom</option>
-                                <option value="Bathroom">Bathroom</option>
-                                <option value="Lighting">Lighting</option>
-                                <option value="Electrical & Power">Electrical & Power</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Home Appliances">Home Appliances</option>
-                                <option value="Cleaning & Utility">Cleaning & Utility</option>
-                                <option value="Garden & Outdoor">Garden & Outdoor</option>
-                                <option value="Tools & Hardware">Tools & Hardware</option>
-                                <option value="Storage & Organization">Storage & Organization</option>
-                                <option value="Baby & Kids">Baby & Kids</option>
-                                <option value="Festive & Seasonal">Festive & Seasonal</option>
-                                <option value="Other">Other</option>
-                            </select>
-                            {formData.productCategory === 'Other' && (
-                                <input 
-                                    type="text" 
-                                    placeholder="Enter custom category" 
-                                    required 
-                                    value={customCategory} 
-                                    onChange={(e) => setCustomCategory(e.target.value)} 
-                                    className="w-full mt-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
-                                />
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-                            <input type="text" name="productSerialNumber" value={formData.productSerialNumber} onChange={handleChange} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Product Photo</label>
-                            <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100">
-                                {(() => {
-                                    const currentProduct = productsList.find(p => p.name === formData.productName);
-                                    const displayPhoto = currentProduct?.photo || formData.productPhoto;
-                                    return displayPhoto ? (
-                                        <img src={displayPhoto} alt="Product" className="w-32 h-32 rounded-lg object-contain bg-gray-50 border border-gray-200 p-2 shadow-sm" />
-                                    ) : (
-                                        <div className="w-32 h-32 rounded-lg bg-gray-50 border border-gray-200 border-dashed flex items-center justify-center text-gray-400 text-sm text-center p-4">
-                                            No photo available
+                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 className="text-lg font-bold text-gray-800">Product Details</h2>
+                        <button type="button" onClick={addProduct} className="flex items-center text-sm font-medium text-primary hover:text-primary-dark">
+                            <MdAdd className="mr-1 text-lg" /> Add Product
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-8">
+                        {formData.products.map((product, index) => (
+                            <div key={index} className="relative bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                                {formData.products.length > 1 && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeProduct(index)}
+                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700 bg-white rounded-full p-1 shadow-sm border border-gray-200"
+                                        title="Remove Product"
+                                    >
+                                        <MdDelete className="text-xl" />
+                                    </button>
+                                )}
+                                <h3 className="text-sm font-semibold text-gray-600 mb-4">Product #{index + 1}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                                        <input 
+                                            required 
+                                            type="text" 
+                                            list={`productListOptions-${index}`}
+                                            value={product.productName} 
+                                            onChange={(e) => handleProductSelection(index, e.target.value)} 
+                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                                        />
+                                        <datalist id={`productListOptions-${index}`}>
+                                            {productsList.map(p => (
+                                                <option key={p._id} value={p.name} />
+                                            ))}
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                                        <select 
+                                            required 
+                                            value={product.productCategory} 
+                                            onChange={(e) => handleProductFieldChange(index, 'productCategory', e.target.value)} 
+                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        >
+                                            <option value="">Select Category</option>
+                                            <option value="Furniture">Furniture</option>
+                                            <option value="Home Decor">Home Decor</option>
+                                            <option value="Kitchen & Dining">Kitchen & Dining</option>
+                                            <option value="Bedroom">Bedroom</option>
+                                            <option value="Bathroom">Bathroom</option>
+                                            <option value="Lighting">Lighting</option>
+                                            <option value="Electrical & Power">Electrical & Power</option>
+                                            <option value="Electronics">Electronics</option>
+                                            <option value="Home Appliances">Home Appliances</option>
+                                            <option value="Cleaning & Utility">Cleaning & Utility</option>
+                                            <option value="Garden & Outdoor">Garden & Outdoor</option>
+                                            <option value="Tools & Hardware">Tools & Hardware</option>
+                                            <option value="Storage & Organization">Storage & Organization</option>
+                                            <option value="Baby & Kids">Baby & Kids</option>
+                                            <option value="Festive & Seasonal">Festive & Seasonal</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        {product.productCategory === 'Other' && (
+                                            <input 
+                                                type="text" 
+                                                placeholder="Enter custom category" 
+                                                required 
+                                                value={product.customCategory || ''} 
+                                                onChange={(e) => handleProductFieldChange(index, 'customCategory', e.target.value)} 
+                                                className="w-full mt-2 px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                                            />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
+                                        <input 
+                                            type="text" 
+                                            value={product.productSerialNumber} 
+                                            onChange={(e) => handleProductFieldChange(index, 'productSerialNumber', e.target.value)} 
+                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Product Photo</label>
+                                        <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200">
+                                            {(() => {
+                                                const displayPhoto = product.productPhoto;
+                                                return displayPhoto ? (
+                                                    <img src={displayPhoto} alt="Product" className="w-32 h-32 rounded-lg object-contain bg-gray-50 border border-gray-200 p-2 shadow-sm" />
+                                                ) : (
+                                                    <div className="w-32 h-32 rounded-lg bg-gray-50 border border-gray-200 border-dashed flex items-center justify-center text-gray-400 text-sm text-center p-4">
+                                                        No photo available
+                                                    </div>
+                                                );
+                                            })()}
+                                            <div className="text-sm text-gray-500">
+                                                <p>This photo is automatically pulled from the Products inventory.</p>
+                                            </div>
                                         </div>
-                                    );
-                                })()}
-                                <div className="text-sm text-gray-500">
-                                    <p>This photo is automatically pulled from the Products inventory.</p>
-                                    <p>To change it, update the photo in the Products section.</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
                 {/* Finance Details Section */}
                 <div className="glass-card p-6 border-l-4 border-l-secondary">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Finance Details</h2>
+                    <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Combined Finance Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount (₹) *</label>

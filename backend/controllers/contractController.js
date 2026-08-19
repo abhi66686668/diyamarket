@@ -1,6 +1,8 @@
 const Contract = require('../models/Contract');
 const Customer = require('../models/Customer');
 const Payment = require('../models/Payment');
+const { generateContractPDF } = require('../utils/pdfGenerator');
+const { sendPDF } = require('../services/whatsappService');
 
 // @desc    Add a contract to an existing customer
 // @route   POST /api/customers/:customerId/contracts
@@ -15,7 +17,7 @@ const addContractToCustomer = async (req, res) => {
         }
 
         const {
-            productName, productCategory, productSerialNumber, productPhoto,
+            products, // Array of products [{productName, productCategory, productSerialNumber, productPhoto}]
             totalProductAmount, advanceAmount, interestRate,
             financeStartDate, numberOfInstallments, paymentFrequency
         } = req.body;
@@ -40,7 +42,7 @@ const addContractToCustomer = async (req, res) => {
 
         const contract = new Contract({
             customer: customer._id,
-            productName, productCategory, productSerialNumber, productPhoto,
+            products,
             totalProductAmount, advanceAmount, financedAmount, interestRate,
             interestAmount, totalRepaymentAmount, paymentFrequency, financeStartDate, numberOfInstallments,
             monthlyInstallment, dueDate, remainingBalance,
@@ -48,6 +50,22 @@ const addContractToCustomer = async (req, res) => {
         });
 
         const savedContract = await contract.save();
+
+        // Send WhatsApp PDF asynchronously
+        const productNames = savedContract.products.map(p => p.productName);
+        const displayTitle = productNames.length > 2 
+            ? `${productNames.slice(0, 2).join(', ')} + ${productNames.length - 2} more` 
+            : productNames.join(', ');
+
+        const productForPdf = {
+            name: displayTitle || 'Product',
+            category: savedContract.products.length > 1 ? 'Multiple Products' : (savedContract.products[0]?.productCategory || ''),
+            photo: savedContract.products.find(p => p.productPhoto)?.productPhoto || null
+        };
+        generateContractPDF(savedContract, customer, productForPdf).then(pdfBuffer => {
+            sendPDF(customer.mobileNumber, pdfBuffer, `Hello ${customer.fullName},\n\nYour new contract has been created successfully. Please find your receipt attached.`);
+        }).catch(err => console.error('Failed to generate PDF for whatsapp:', err));
+
         res.status(201).json(savedContract);
     } catch (error) {
         res.status(400).json({ message: error.message });

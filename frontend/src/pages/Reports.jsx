@@ -36,13 +36,24 @@ const Reports = () => {
                             ...contract,
                             customerName: customer.fullName,
                             mobileNumber: customer.mobileNumber,
-                            address: customer.address
+                            address: customer.address,
+                            productName: contract.products && contract.products.length > 0 ? contract.products.map(p => p.productName).join(', ') : contract.productName
                         });
                     });
                 }
             });
+            
+            const allPayments = paymentsRes.data.map(p => {
+                if (p.contract) {
+                    p.contract.productName = p.contract.products && p.contract.products.length > 0 
+                        ? p.contract.products.map(prod => prod.productName).join(', ') 
+                        : p.contract.productName;
+                }
+                return p;
+            });
+            
             setContracts(allContracts);
-            setPayments(paymentsRes.data);
+            setPayments(allPayments);
         } catch (error) {
             toast.error('Failed to fetch data for reports');
         } finally {

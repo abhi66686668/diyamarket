@@ -7,21 +7,23 @@ const contractSchema = new mongoose.Schema({
         required: true
     },
     // Product Details
-    productName: {
-        type: String,
-        required: true
-    },
-    productCategory: {
-        type: String,
-        required: true
-    },
-    productPhoto: {
-        type: String, // Cloudinary URL
-        default: null
-    },
-    productSerialNumber: {
-        type: String
-    },
+    products: [{
+        productName: {
+            type: String,
+            required: true
+        },
+        productCategory: {
+            type: String,
+            required: true
+        },
+        productPhoto: {
+            type: String, // Cloudinary URL
+            default: null
+        },
+        productSerialNumber: {
+            type: String
+        }
+    }],
 
     // Finance Details
     totalProductAmount: {

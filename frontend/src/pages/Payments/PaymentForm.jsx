@@ -234,7 +234,7 @@ const PaymentForm = () => {
                                 <option value="auto" className="font-bold text-green-600 bg-green-50">-- Pay to Overall Balance (Auto-deduct) --</option>
                                 {customerContracts.map(contract => (
                                     <option key={contract._id} value={contract._id}>
-                                        {contract.productName} - (Bal: {formatCurrency(contract.remainingBalance)})
+                                        {contract.products && contract.products.length > 0 ? contract.products.map(p => p.productName).join(', ') : contract.productName} - (Bal: {formatCurrency(contract.remainingBalance)})
                                     </option>
                                 ))}
                             </select>
@@ -265,7 +265,7 @@ const PaymentForm = () => {
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500">Product</p>
-                                    <p className="text-sm font-semibold text-gray-700">{contractDetails.productName}</p>
+                                    <p className="text-sm font-semibold text-gray-700">{contractDetails.productName || (contractDetails.products && contractDetails.products.length > 0 ? contractDetails.products.map(p => p.productName).join(', ') : 'Unknown Product')}</p>
                                 </div>
                             </div>
                         </div>

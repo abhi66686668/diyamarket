@@ -1,6 +1,8 @@
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const Payment = require('../models/Payment');
+const { generateContractPDF } = require('../utils/pdfGenerator');
+const { sendPDF } = require('../services/whatsappService');
 
 // @desc    Get all customers
 // @route   GET /api/customers
@@ -75,7 +77,7 @@ const createCustomer = async (req, res) => {
         const {
             fullName, mobileNumber, photo,
             // Contract details
-            productName, productCategory, productSerialNumber, productPhoto,
+            products, // Array of products [{productName, productCategory, productSerialNumber, productPhoto}]
             totalProductAmount, advanceAmount, interestRate,
             financeStartDate, numberOfInstallments, paymentFrequency
         } = req.body;
@@ -108,7 +110,7 @@ const createCustomer = async (req, res) => {
         // 3. Create Contract
         const contract = new Contract({
             customer: customer._id,
-            productName, productCategory, productSerialNumber, productPhoto,
+            products,
             totalProductAmount, advanceAmount, financedAmount, interestRate,
             interestAmount, totalRepaymentAmount, paymentFrequency, financeStartDate, numberOfInstallments,
             monthlyInstallment, dueDate, remainingBalance,
@@ -119,6 +121,16 @@ const createCustomer = async (req, res) => {
         
         const io = req.app.get('io');
         if (io) io.emit('customer_changed', { action: 'create', customer, contract });
+
+        // Send WhatsApp PDF asynchronously
+        const productForPdf = {
+            name: contract.products[0]?.productName || 'Product',
+            category: contract.products[0]?.productCategory || '',
+            photo: contract.products[0]?.productPhoto || null
+        };
+        generateContractPDF(contract, customer, productForPdf).then(pdfBuffer => {
+            sendPDF(customer.mobileNumber, pdfBuffer, `Hello ${customer.fullName},\n\nYour account and new contract have been created successfully. Please find your receipt attached.`);
+        }).catch(err => console.error('Failed to generate PDF for whatsapp:', err));
 
         res.status(201).json({ customer, contract });
     } catch (error) {
