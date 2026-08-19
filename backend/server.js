@@ -39,14 +39,26 @@ app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // WhatsApp QR Code endpoint
 app.get('/api/qr', async (req, res) => {
-    const { getQR } = require('./services/whatsappService');
+    const { getQR, getAuthStatus } = require('./services/whatsappService');
     const qr = getQR();
+    const isAuthenticated = getAuthStatus();
+
+    if (isAuthenticated) {
+        return res.send(`
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px; color: green;">
+                <h2>✅ WhatsApp is Authenticated!</h2>
+                <p>Your session is active and receipts are ready to be sent.</p>
+            </div>
+        `);
+    }
+
     if (!qr) {
         return res.send(`
+            <meta http-equiv="refresh" content="5">
             <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                <h2>No QR Code Available</h2>
-                <p>Either WhatsApp is already authenticated, or the server is still starting up.</p>
-                <p>Please wait a moment and refresh this page.</p>
+                <h2>⏳ Generating QR Code...</h2>
+                <p>The server is starting up. This usually takes 10 to 30 seconds.</p>
+                <p>Please wait... this page will automatically refresh every 5 seconds.</p>
             </div>
         `);
     }

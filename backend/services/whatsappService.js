@@ -6,6 +6,7 @@ const qrcodeImg = require('qrcode');
 
 let client;
 let currentQR = '';
+let isAuthenticated = false;
 
 const initWhatsApp = async () => {
     try {
@@ -29,6 +30,7 @@ const initWhatsApp = async () => {
 
         client.on('qr', (qr) => {
             currentQR = qr;
+            isAuthenticated = false;
             console.log('\n=============================================');
             console.log('SCAN THIS QR CODE WITH WHATSAPP TO LINK ACCOUNT');
             console.log('If you cannot scan this, go to: https://diyamarket.onrender.com/api/qr');
@@ -47,6 +49,7 @@ const initWhatsApp = async () => {
 
         client.on('ready', () => {
             currentQR = '';
+            isAuthenticated = true;
             console.log('WhatsApp Client is Ready!');
         });
         
@@ -56,11 +59,13 @@ const initWhatsApp = async () => {
 
         client.on('authenticated', () => {
             currentQR = '';
+            isAuthenticated = true;
             console.log('WhatsApp Authenticated!');
         });
 
         client.on('auth_failure', msg => {
             currentQR = '';
+            isAuthenticated = false;
             console.error('WhatsApp Authentication failure:', msg);
         });
 
@@ -71,6 +76,7 @@ const initWhatsApp = async () => {
 };
 
 const getQR = () => currentQR;
+const getAuthStatus = () => isAuthenticated;
 
 const sendPDF = async (phoneNumber, pdfBuffer, caption = 'Here is your receipt.') => {
     if (!client) {
@@ -93,4 +99,4 @@ const sendPDF = async (phoneNumber, pdfBuffer, caption = 'Here is your receipt.'
     }
 };
 
-module.exports = { initWhatsApp, sendPDF, getQR };
+module.exports = { initWhatsApp, sendPDF, getQR, getAuthStatus };
