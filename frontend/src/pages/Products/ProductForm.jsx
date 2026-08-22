@@ -12,13 +12,13 @@ const ProductForm = () => {
     const [loading, setLoading] = useState(isEditMode);
     const [submitting, setSubmitting] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [showImagePreview, setShowImagePreview] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
         category: '',
         price: '',
-        description: '',
-        stock: 0,
+        discountPrice: '',
         photo: ''
     });
 
@@ -38,8 +38,7 @@ const ProductForm = () => {
                 name: data.name,
                 category: data.category,
                 price: data.price,
-                description: data.description || '',
-                stock: data.stock || 0,
+                discountPrice: data.discountPrice || '',
                 photo: data.photo || ''
             });
         } catch (error) {
@@ -182,14 +181,15 @@ const ProductForm = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Stock Quantity</label>
+                            <label className="text-sm font-medium text-gray-700">Discount Price (INR)</label>
                             <input
                                 type="number"
-                                name="stock"
-                                value={formData.stock}
+                                name="discountPrice"
+                                value={formData.discountPrice}
                                 onChange={handleChange}
                                 min="0"
                                 className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                placeholder="e.g. 45000"
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -199,7 +199,8 @@ const ProductForm = () => {
                                     <img 
                                         src={formData.photo} 
                                         alt="Product preview" 
-                                        className="h-20 w-20 object-cover rounded-lg border border-gray-200"
+                                        className="h-20 w-20 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() => setShowImagePreview(true)}
                                     />
                                 )}
                                 <div className="flex-1">
@@ -213,17 +214,6 @@ const ProductForm = () => {
                                     {uploadingImage && <p className="text-sm text-gray-500 mt-2">Uploading image...</p>}
                                 </div>
                             </div>
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-700">Description</label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                rows="3"
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                placeholder="Product details..."
-                            ></textarea>
                         </div>
                     </div>
 
@@ -240,6 +230,28 @@ const ProductForm = () => {
                     </div>
                 </form>
             </div>
+
+            {showImagePreview && formData.photo && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+                    onClick={() => setShowImagePreview(false)}
+                >
+                    <div className="relative max-w-3xl max-h-[90vh] flex flex-col items-center justify-center">
+                        <button 
+                            className="absolute -top-10 right-0 text-white hover:text-gray-300 text-4xl font-bold"
+                            onClick={() => setShowImagePreview(false)}
+                        >
+                            &times;
+                        </button>
+                        <img 
+                            src={formData.photo} 
+                            alt="Preview" 
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

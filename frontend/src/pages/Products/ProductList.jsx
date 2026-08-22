@@ -9,6 +9,7 @@ const ProductList = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [previewImage, setPreviewImage] = useState(null);
 
     useEffect(() => {
         fetchProducts();
@@ -44,10 +45,10 @@ const ProductList = () => {
         }
     };
 
-    const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+    const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h1 className="text-2xl font-bold text-gray-800">Products</h1>
                 <Link to="/products/new" className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-primary/30 text-sm flex items-center">
@@ -77,7 +78,7 @@ const ProductList = () => {
                                 <th className="py-4 px-6 font-semibold text-sm text-gray-600">Product</th>
                                 <th className="py-4 px-6 font-semibold text-sm text-gray-600">Category</th>
                                 <th className="py-4 px-6 font-semibold text-sm text-gray-600">Price</th>
-                                <th className="py-4 px-6 font-semibold text-sm text-gray-600">Stock</th>
+                                <th className="py-4 px-6 font-semibold text-sm text-gray-600">Discount Price</th>
                                 <th className="py-4 px-6 font-semibold text-sm text-gray-600 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -103,7 +104,12 @@ const ProductList = () => {
                                         <td className="py-4 px-6">
                                             <div className="flex items-center">
                                                 {product.photo ? (
-                                                    <img src={product.photo} alt={product.name} className="w-10 h-10 rounded-lg object-cover mr-3 border border-gray-200" />
+                                                    <img 
+                                                        src={product.photo} 
+                                                        alt={product.name} 
+                                                        className="w-10 h-10 rounded-lg object-cover mr-3 border border-gray-200 cursor-pointer hover:opacity-80" 
+                                                        onClick={() => setPreviewImage(product.photo)}
+                                                    />
                                                 ) : (
                                                     <div className="w-10 h-10 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center mr-3">
                                                         <MdInventory className="text-xl" />
@@ -111,7 +117,6 @@ const ProductList = () => {
                                                 )}
                                                 <div>
                                                     <p className="font-semibold text-gray-800">{product.name}</p>
-                                                    <p className="text-xs text-gray-500 truncate max-w-[200px]">{product.description}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -122,8 +127,8 @@ const ProductList = () => {
                                         </td>
                                         <td className="py-4 px-6 text-sm font-bold text-gray-800">{formatCurrency(product.price)}</td>
                                         <td className="py-4 px-6">
-                                            <span className={`text-sm font-medium ${product.stock <= 5 ? 'text-red-500' : 'text-gray-800'}`}>
-                                                {product.stock}
+                                            <span className="text-sm font-medium text-green-600">
+                                                {product.discountPrice > 0 ? formatCurrency(product.discountPrice) : '-'}
                                             </span>
                                         </td>
                                         <td className="py-4 px-6">
@@ -160,7 +165,12 @@ const ProductList = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center flex-1 min-w-0">
                                         {product.photo ? (
-                                            <img src={product.photo} alt={product.name} className="w-12 h-12 rounded-lg object-cover mr-3 border border-gray-200 flex-shrink-0" />
+                                            <img 
+                                                src={product.photo} 
+                                                alt={product.name} 
+                                                className="w-12 h-12 rounded-lg object-cover mr-3 border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80" 
+                                                onClick={() => setPreviewImage(product.photo)}
+                                            />
                                         ) : (
                                             <div className="w-12 h-12 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center mr-3 flex-shrink-0">
                                                 <MdInventory className="text-2xl" />
@@ -168,7 +178,6 @@ const ProductList = () => {
                                         )}
                                         <div className="min-w-0 pr-2">
                                             <p className="font-semibold text-gray-800 truncate">{product.name}</p>
-                                            <p className="text-xs text-gray-500 truncate">{product.description}</p>
                                         </div>
                                     </div>
                                     <span className="px-2 py-1 rounded-full text-[10px] font-medium bg-gray-100 text-gray-800 flex-shrink-0 whitespace-nowrap">
@@ -181,9 +190,9 @@ const ProductList = () => {
                                         <p className="text-sm font-bold text-gray-800">{formatCurrency(product.price)}</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-xs text-gray-500">Stock</p>
-                                        <p className={`text-sm font-medium ${product.stock <= 5 ? 'text-red-500' : 'text-gray-800'}`}>
-                                            {product.stock}
+                                        <p className="text-xs text-gray-500">Discount</p>
+                                        <p className="text-sm font-medium text-green-600">
+                                            {product.discountPrice > 0 ? formatCurrency(product.discountPrice) : '-'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -200,6 +209,29 @@ const ProductList = () => {
                     )}
                 </div>
             </div>
+
+            {/* Image Preview Modal */}
+            {previewImage && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <div className="relative max-w-3xl max-h-[90vh] flex flex-col items-center justify-center">
+                        <button 
+                            className="absolute -top-10 right-0 text-white hover:text-gray-300 text-4xl font-bold"
+                            onClick={() => setPreviewImage(null)}
+                        >
+                            &times;
+                        </button>
+                        <img 
+                            src={previewImage} 
+                            alt="Preview" 
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

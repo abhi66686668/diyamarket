@@ -15,11 +15,7 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    description: {
-        type: String,
-        default: ''
-    },
-    stock: {
+    discountPrice: {
         type: Number,
         default: 0
     },

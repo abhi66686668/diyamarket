@@ -40,14 +40,13 @@ exports.getProductById = async (req, res) => {
 // Create product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, price, description, stock, photo } = req.body;
+        const { name, category, price, discountPrice, photo } = req.body;
         
         const product = await Product.create({
             name,
             category,
             price,
-            description,
-            stock,
+            discountPrice,
             photo
         });
 
@@ -64,7 +63,7 @@ exports.createProduct = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
     try {
-        const { name, category, price, description, stock, photo } = req.body;
+        const { name, category, price, discountPrice, photo } = req.body;
         
         let product = await Product.findById(req.params.id);
         if (!product) {
@@ -74,8 +73,7 @@ exports.updateProduct = async (req, res) => {
         product.name = name || product.name;
         product.category = category || product.category;
         product.price = price !== undefined ? price : product.price;
-        product.description = description !== undefined ? description : product.description;
-        product.stock = stock !== undefined ? stock : product.stock;
+        product.discountPrice = discountPrice !== undefined ? discountPrice : product.discountPrice;
         if (photo !== undefined) product.photo = photo;
 
         await product.save();
