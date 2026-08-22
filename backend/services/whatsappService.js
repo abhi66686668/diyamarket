@@ -18,6 +18,9 @@ const initWhatsApp = async () => {
                 store: store,
                 backupSyncIntervalMs: 300000
             }),
+            webVersionCache: {
+                type: 'none'
+            },
             puppeteer: {
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
                 executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
